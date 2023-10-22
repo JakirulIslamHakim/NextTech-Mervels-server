@@ -14,7 +14,7 @@ app.use(express.json())
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://nextech-marvels:EaoIzwx8ROWqC5Gu@cluster0.5prtsfh.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -32,6 +32,7 @@ async function run() {
     // await client.connect();
 
     const productsCollection = client.db('productsDB').collection('products');
+    const AddCartProductsCollection = client.db('productsDB').collection('addCart');
 
     app.get('/products/:brand',async(req,res)=>{
             const brand = req.params.brand.toLowerCase();
@@ -40,9 +41,11 @@ async function run() {
             res.send(result)       
     })
 
-    app.get('/products/:id',async(req,res)=>{
+    app.get('/product/:id',async(req,res)=>{
       const id = req.params.id;
-      console.log(id);
+      const query = {_id : new ObjectId(id)};
+      const result = await productsCollection.findOne(query);
+      res.send(result)
     })
 
     app.post('/addProduct',async(req,res)=>{
@@ -51,7 +54,11 @@ async function run() {
         res.send(result);
     })
 
-
+    app.post('/addCart',async(req,res)=>{
+      const addProduct = req.body;
+      const result = await AddCartProductsCollection.insertOne(addProduct);
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

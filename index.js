@@ -48,6 +48,13 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/myCart/:mail',async(req,res)=>{
+      const mail = req.params.mail;
+      const query = {userEmail : mail};
+      const cursor = await AddCartProductsCollection.find(query).toArray();
+      res.send(cursor)
+    })
+
     app.post('/addProduct',async(req,res)=>{
         const product = req.body;
         const result = await productsCollection.insertOne(product);

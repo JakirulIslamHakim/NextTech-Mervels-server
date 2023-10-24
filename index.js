@@ -1,21 +1,18 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const port = process.env.PORT || 5000;
 
-const app = express()
+const app = express();
 
 // middleware
-app.use(cors())
-app.use(express.json())
-
+app.use(cors());
+app.use(express.json());
 
 // nextech-marvels EaoIzwx8ROWqC5Gu
 
-
-
-
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = "mongodb+srv://nextech-marvels:EaoIzwx8ROWqC5Gu@cluster0.5prtsfh.mongodb.net/?retryWrites=true&w=majority";
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const uri =
+  "mongodb+srv://nextech-marvels:EaoIzwx8ROWqC5Gu@cluster0.5prtsfh.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -23,7 +20,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -31,45 +28,88 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const productsCollection = client.db('productsDB').collection('products');
-    const AddCartProductsCollection = client.db('productsDB').collection('addCart');
+    const productsCollection = client.db("productsDB").collection("products");
+    const AddCartProductsCollection = client
+      .db("productsDB")
+      .collection("addCart");
 
-    app.get('/products/:brand',async(req,res)=>{
-            const brand = req.params.brand.toLowerCase();
-            const query = {brand : brand};
-            const result = await productsCollection.find(query).toArray();
-            res.send(result)       
-    })
+    app.get("/products/:brand", async (req, res) => {
+      const brand = req.params.brand.toLowerCase();
+      const query = { brand: brand };
+      const result = await productsCollection.find(query).toArray();
+      res.send(result);
+    });
 
-    app.get('/product/:id',async(req,res)=>{
+    app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await productsCollection.findOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-    app.get('/myCart/:mail',async(req,res)=>{
+    app.put("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const product = req.body;
+      const updateProduct = {
+        $set: {
+          name:product.name,
+          image:product.image,
+          price:product.price,
+          rating:product.rating,
+          productType:product.productType,
+          brand:product.brand,
+          description:product.description,
+        },
+      };
+      const result = await productsCollection.updateOne(filter,updateProduct,options);
+      res.send(result)
+    });
+
+    app.get("/myCart/:mail", async (req, res) => {
       const mail = req.params.mail;
-      const query = {userEmail : mail};
+      const query = { userEmail: mail };
       const cursor = await AddCartProductsCollection.find(query).toArray();
-      res.send(cursor)
-    })
+      res.send(cursor);
+    });
 
-    app.post('/addProduct',async(req,res)=>{
-        const product = req.body;
-        const result = await productsCollection.insertOne(product);
-        res.send(result);
-    })
+    // app.get("/cart/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: id };
+    //   const cursor = await AddCartProductsCollection.findOne(query);
+    //   console.log(cursor);
+    //   res.send(cursor);
+    // });
 
-    app.post('/addCart',async(req,res)=>{
+    app.post("/addProduct", async (req, res) => {
+      const product = req.body;
+      const result = await productsCollection.insertOne(product);
+      res.send(result);
+    });
+
+    app.post("/addCart", async (req, res) => {
       const addProduct = req.body;
+      console.log(addProduct);
       const result = await AddCartProductsCollection.insertOne(addProduct);
-      res.send(result)
-    })
+      res.send(result);
+    });
+
+    app.delete("/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: id };
+      // console.log(query);
+      const result = await AddCartProductsCollection.deleteOne(query);
+      res.send(result);
+      // console.log(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -77,12 +117,10 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("HEllO World");
+});
 
-
-app.get('/',(req,res)=>{
-   res.send('HEllO World');
-})
-
-app.listen(port,()=>{
-    console.log(`the server is running port ${port}`);
-})
+app.listen(port, () => {
+  console.log(`the server is running port ${port}`);
+});

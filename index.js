@@ -32,6 +32,7 @@ async function run() {
     const AddCartProductsCollection = client
       .db("productsDB")
       .collection("addCart");
+    const reviewCollection = client.db("productsDB").collection("review");
 
     app.get("/products/:brand", async (req, res) => {
       const brand = req.params.brand.toLowerCase();
@@ -54,17 +55,21 @@ async function run() {
       const product = req.body;
       const updateProduct = {
         $set: {
-          name:product.name,
-          image:product.image,
-          price:product.price,
-          rating:product.rating,
-          productType:product.productType,
-          brand:product.brand,
-          description:product.description,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+          rating: product.rating,
+          productType: product.productType,
+          brand: product.brand,
+          description: product.description,
         },
       };
-      const result = await productsCollection.updateOne(filter,updateProduct,options);
-      res.send(result)
+      const result = await productsCollection.updateOne(
+        filter,
+        updateProduct,
+        options
+      );
+      res.send(result);
     });
 
     app.get("/myCart/:mail", async (req, res) => {
@@ -103,6 +108,12 @@ async function run() {
       const result = await AddCartProductsCollection.deleteOne(query);
       res.send(result);
       // console.log(result);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
